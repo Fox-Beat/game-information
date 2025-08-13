@@ -1,0 +1,6 @@
+{
+  "name": "Casino Game Info Finder",
+  "description": "An application to fetch detailed information about online casino games like volatility, theme, and features using AI. Paste a list of game names to get started.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
