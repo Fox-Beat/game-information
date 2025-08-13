@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -6,6 +5,10 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Casino Game Info Finder</title>
+    <script>
+      // Polyfill process.env for browser environments to prevent crashes.
+      window.process = window.process || { env: {} };
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
   <script type="importmap">
 {
