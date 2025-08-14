@@ -1,0 +1,141 @@
+import React, { useState } from 'react';
+import { GameInfo } from '../types';
+
+interface ResultsTableProps {
+  results: GameInfo[];
+}
+
+const ClipboardIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+    </svg>
+);
+
+const CheckIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <polyline points="20 6 9 17 4 12" />
+    </svg>
+);
+
+const Tag: React.FC<{ children: React.ReactNode, color: string }> = ({ children, color }) => (
+    <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${color}`}>
+        {children}
+    </span>
+);
+
+const getVolatilityColor = (volatility: number): string => {
+    if (volatility >= 7) return 'bg-red-500/20 text-red-300';
+    if (volatility >= 5) return 'bg-orange-500/20 text-orange-300';
+    if (volatility >= 3) return 'bg-yellow-500/20 text-yellow-300';
+    if (volatility >= 1) return 'bg-sky-500/20 text-sky-300';
+    return 'bg-slate-700 text-slate-400';
+};
+
+const ResultsTable: React.FC<ResultsTableProps> = ({ results }) => {
+  const [isCopied, setIsCopied] = useState(false);
+
+  if (results.length === 0) {
+    return (
+        <div className="text-center p-10 border-2 border-dashed border-slate-700 rounded-lg max-w-6xl mx-auto mt-6">
+            <p className="text-slate-400">Results will appear here once you fetch game info.</p>
+        </div>
+    );
+  }
+
+  const handleCopyToClipboard = () => {
+    const headers = ['Game', 'Provider', 'Theme', 'Features', 'Volatility', 'RTP', 'Lines', 'Reels'];
+    const rows = results.map(game => [
+        game.gameName,
+        game.provider,
+        game.theme.join(', '),
+        game.features.join(', '),
+        game.volatility,
+        game.rtp,
+        game.lines,
+        game.reels
+    ].join('\t'));
+
+    const tsvContent = [headers.join('\t'), ...rows].join('\n');
+    
+    navigator.clipboard.writeText(tsvContent).then(() => {
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+    }, (err) => {
+        console.error('Failed to copy: ', err);
+        alert('Failed to copy results to clipboard.');
+    });
+  };
+
+  return (
+    <div className="px-4 py-6 max-w-7xl mx-auto">
+      <div className="flex justify-end mb-4">
+          <button
+              onClick={handleCopyToClipboard}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-300 bg-slate-700 border border-slate-600 rounded-md hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-indigo-500 transition-all w-36 justify-center"
+              disabled={isCopied}
+          >
+              {isCopied ? (
+                  <>
+                      <CheckIcon className="w-4 h-4 text-emerald-400" />
+                      Copied!
+                  </>
+              ) : (
+                  <>
+                      <ClipboardIcon className="w-4 h-4" />
+                      Copy for Excel
+                  </>
+              )}
+          </button>
+      </div>
+      <div className="overflow-x-auto bg-slate-800/50 rounded-lg border border-slate-700">
+        <table className="min-w-full divide-y divide-slate-700">
+          <thead className="bg-slate-800">
+            <tr>
+              <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-300 sm:pl-6">Game</th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-300">Provider</th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-300">Theme</th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-300">Features</th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-300">Volatility</th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-300">RTP</th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-300">Lines</th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-300">Reels</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-800">
+            {results.map((game, index) => (
+              <tr key={`${game.gameName}-${index}`} className="hover:bg-slate-700/50 transition-colors">
+                <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-slate-200 sm:pl-6">
+                    {game.gameName}
+                </td>
+                <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-400">
+                    {game.provider}
+                </td>
+                <td className="whitespace-normal px-3 py-4 text-sm text-slate-300 max-w-xs">
+                    {game.theme.join(', ')}
+                </td>
+                <td className="whitespace-normal px-3 py-4 text-sm text-slate-300 max-w-xs">
+                    {game.features.join(', ')}
+                </td>
+                <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-300">
+                    {game.volatility > 0 && <Tag color={getVolatilityColor(game.volatility)}>{game.volatility}/8</Tag>}
+                </td>
+                <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-300">
+                    {game.rtp && <Tag color="bg-emerald-500/20 text-emerald-300">{game.rtp}</Tag>}
+                </td>
+                <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-300">
+                    {game.lines && <Tag color="bg-purple-500/20 text-purple-300">{game.lines}</Tag>}
+                </td>
+                <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-300">
+                    {game.reels && <Tag color="bg-blue-500/20 text-blue-300">{game.reels}</Tag>}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+export default ResultsTable;
